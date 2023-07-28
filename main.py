@@ -3,7 +3,7 @@ from BoardSetup import board_setup, get_choice, get_tile_choice, decide_outcome
 # Sets up the board
 board = board_setup()
 
-# While the game has not finished
+# While the game has not finished lkj
 keep_going = True
 while keep_going:
     print(board)
