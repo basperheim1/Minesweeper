@@ -1,10 +1,14 @@
 from BoardSetup import board_setup, get_choice, get_tile_choice, decide_outcome
 
 # Sets up the board
-board = board_setup()
-
-# While the game has not finished lkj
 keep_going = True
+board = board_setup()
+board.determine_combos()
+board.check_probabilities(board.possible_combos)
+if len(board.unknown_neighbors) == board.tiles-board.num_mines:
+    keep_going = False
+
+# While the game has not finished
 while keep_going:
     print(board)
 
@@ -21,5 +25,8 @@ while keep_going:
     # If all non-mine tiles have been uncovered, the game ends
     if len(board.unknown_neighbors) == board.tiles-board.num_mines:
         keep_going = False
-    board.check_probabilities(board.determine_combos())
+    # board.check_probabilities(board.determine_combos())
+    board.determine_combos()
+    board.check_probabilities(board.possible_combos)
+
 decide_outcome(board)

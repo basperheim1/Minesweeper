@@ -1,8 +1,7 @@
 import random
-from QuickSort import quickSort
 from itertools import combinations
 from Cell import Cell
-from Product import product
+from RandomFunctions import product, quickSort
 from math import factorial
 
 
@@ -42,7 +41,7 @@ class Board:
     # Executes if a tile pressed is not a mine
     def check_surrounding_mines(self, row, column):
         # Creates a dict with the pressed tile as a key, and adds the covered surrounding tiles to the value list
-        need_to_check = {(row, column):[]}
+        need_to_check = []
 
         # Uncovers the tile on the outputted board
         self.board[row][column].uncovered = True
@@ -69,13 +68,13 @@ class Board:
                         total_mines += 1
                     # If a surrounding tile is covered, adds it to the pressed tile's list
                     if not self.board[row+i][column+j].uncovered:
-                        need_to_check[(row, column)].append((row + i, column + j))
+                        need_to_check.append((row + i, column + j))
                         self.unknown_neighbors[(row, column)].append((row + i, column + j))
 
         # Sets pressed tile's mines_around to the total amount of mines around
         self.board[row][column].mines_around = total_mines
         if total_mines == 0:
-            for i in need_to_check[(row, column)]:
+            for i in need_to_check:
                 if not self.board[i[0]][i[1]].uncovered:
                     self.tile_clicked(i[0], i[1])
 
@@ -138,7 +137,7 @@ class Board:
         return correct_combinations
     
 
-    def check_probabilities(self, correct_combinations):
+    def determine_probabilities(self, correct_combinations):
         total_combinations = 0
         possible_mines = {}
         for i in correct_combinations:

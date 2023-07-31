@@ -1,4 +1,4 @@
-from Board import Board
+from Board2 import Board
 
 class TooManyMines(Exception):
     '''Raised when the number of mines exceeds the total available tiles'''
@@ -40,13 +40,15 @@ def board_setup():
         try:
             mines = int(input("How many mines? "))
             if mines >= width*height:
-                raise TooManyMines()
+                raise TooManyMines
             correct = True
-        except TooManyMines():
+        except TooManyMines:
             print("The total number of mines must be less than the total number of tiles in the board, try again. ")
         except ValueError:
             print("The total number of mines must be a positive integer, try again.")
-    returned_board = Board(width, height, mines)
+
+    first_choice = get_first_spot(width, height)
+    returned_board = Board(width, height, mines, first_choice[0], first_choice[1])
     # returns created board
     return returned_board
 
@@ -91,6 +93,32 @@ def get_tile_choice(inputted_board):
     if (row, column) in inputted_board.unknown_neighbors.keys():
         print("That tile has already been uncovered, try again")
         return get_tile_choice(inputted_board)
+    return (row, column)
+
+def get_first_spot(height, width):
+    correct = False
+    while not correct:
+        try:
+            row = int(input("Which row of the board do you want to check? "))
+            if not 0 <= row < height:
+                raise InputNotInBounds
+            correct = True
+        except InputNotInBounds:
+            print(f"You must chose a value from 0 to {height - 1}")
+        except ValueError:
+            print("Your input must be a non-negative integer")
+
+    correct = False
+    while not correct:
+        try:
+            column = int(input("Which column of the board do you want to check? "))
+            if not 0 <= column < width:
+                raise InputNotInBounds
+            correct = True
+        except InputNotInBounds:
+            print(f"You must chose a value from 0 to {width - 1}")
+        except ValueError:
+            print("Your input must be a non-negative integer")
     return (row, column)
 
 
