@@ -3,13 +3,10 @@ from BoardSetup import board_setup, get_choice, get_tile_choice, decide_outcome
 # Sets up the board
 keep_going = True
 board = board_setup()
-board.determine_combos()
-board.check_probabilities(board.possible_combos)
-if len(board.unknown_neighbors) == board.tiles-board.num_mines:
-    keep_going = False
 
 # While the game has not finished
-while keep_going:
+while keep_going and board != False:
+    board.check_probabilities()
     print(board)
 
     # Determines if it's a guess, a flag, or a probability request, then gets the tile location
@@ -23,10 +20,6 @@ while keep_going:
         board.board[tile_location[0]][tile_location[1]].flagged = True
 
     # If all non-mine tiles have been uncovered, the game ends
-    if len(board.unknown_neighbors) == board.tiles-board.num_mines:
+    if len(board.checked_tiles) == board.tiles-board.num_mines:
         keep_going = False
-    # board.check_probabilities(board.determine_combos())
-    board.determine_combos()
-    board.check_probabilities(board.possible_combos)
-
 decide_outcome(board)

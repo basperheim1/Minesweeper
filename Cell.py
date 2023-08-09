@@ -5,8 +5,11 @@ class Cell:
         self.uncovered = False
         self.mines_around = 0
         self.flagged = False
-        self.probability = None
+        self.probability = 0
         self.has_some_data = False
+        self.surrounding_tiles = set()
+        self.known_tiles = set()
+        self.cell_known_mines = 0
 
     def prob_str(self):
         if not self.uncovered:
@@ -18,6 +21,8 @@ class Cell:
                     return "[ M ]"
                 elif self.probability == 0:
                     return "[00%]"
+                elif 0 < self.probability < .095:
+                    return f"[0{int(round(self.probability, 2)*100)}%]"
                 else:
                     return f"[{int(round(self.probability, 2)*100)}%]"
                 

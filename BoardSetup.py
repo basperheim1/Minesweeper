@@ -1,4 +1,6 @@
-from Board2 import Board
+from Board import Board
+import sys
+sys.setrecursionlimit(20000)
 
 class TooManyMines(Exception):
     '''Raised when the number of mines exceeds the total available tiles'''
@@ -47,22 +49,25 @@ def board_setup():
         except ValueError:
             print("The total number of mines must be a positive integer, try again.")
 
-    first_choice = get_first_spot(width, height)
-    returned_board = Board(width, height, mines, first_choice[0], first_choice[1])
+    first_choice = get_first_spot(height, width)
+    returned_board = Board(height, width, mines, first_choice[0], first_choice[1])
     # returns created board
+    if len(returned_board.checked_tiles) == returned_board.tiles-returned_board.num_mines:
+        print(returned_board.board)
+        return False
     return returned_board
 
 
 def get_choice(inputted_board):
-    fgp = input("Do you want to flag a mine (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
+    fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
     while fgp != 'g' and fgp != 'f':
         if fgp == 'p':
             inputted_board.probabilities = not inputted_board.probabilities
             print(inputted_board)
-            fgp = input("Do you want to flag a mine (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
+            fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
         else:
             print("That is not a valid choice, try again: ")
-            fgp = input("Do you want to flag a mine (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
+            fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
     return fgp
 
 
@@ -90,7 +95,7 @@ def get_tile_choice(inputted_board):
             print(f"You must chose a value from 0 to {inputted_board.width - 1}")
         except ValueError:
             print("Your input must be a non-negative integer")
-    if (row, column) in inputted_board.unknown_neighbors.keys():
+    if (row, column) in inputted_board.checked_tiles:
         print("That tile has already been uncovered, try again")
         return get_tile_choice(inputted_board)
     return (row, column)
@@ -128,10 +133,11 @@ def decide_outcome(finished_board):
         for j in range(finished_board.width):
             if not finished_board.board[i][j].uncovered and finished_board.board[i][j].is_mine:
                 finished_board.board[i][j].uncovered = True
+    finished_board.probabilities = False
     print(finished_board)
 
     # Determines whether you won or lost
-    if len(finished_board.unknown_neighbors) == finished_board.tiles - finished_board.num_mines:
+    if len(finished_board.checked_tiles) == finished_board.tiles - finished_board.num_mines:
         print("CONGRATULATIONS!!! YOU WON!!")
     else:
         print("You lost")
