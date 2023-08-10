@@ -52,9 +52,6 @@ def board_setup():
     first_choice = get_first_spot(height, width)
     returned_board = Board(height, width, mines, first_choice[0], first_choice[1])
     # returns created board
-    if len(returned_board.checked_tiles) == returned_board.tiles-returned_board.num_mines:
-        print(returned_board.board)
-        return False
     return returned_board
 
 
@@ -63,6 +60,11 @@ def get_choice(inputted_board):
     while fgp != 'g' and fgp != 'f':
         if fgp == 'p':
             inputted_board.probabilities = not inputted_board.probabilities
+            print(inputted_board)
+            fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
+        elif fgp == 'm':
+            for i in inputted_board.mines:
+                inputted_board.board[i[0]][i[1]].flagged = True
             print(inputted_board)
             fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
         else:

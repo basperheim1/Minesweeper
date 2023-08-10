@@ -5,6 +5,7 @@ from math import factorial
 
 class Board:
     def __init__(self, height, width, num_mines, first_row, first_column):
+        self.mines = set()
         self.height = height
         self.width = width
         self.num_mines = num_mines
@@ -41,6 +42,7 @@ class Board:
 
     def mine_known(self, row, column):
         self.known_mines += 1
+        self.mines.add((row, column))
         for i in self.board[row][column].surrounding_tiles:
             self.board[i[0]][i[1]].known_tiles.add((row, column))
             self.board[i[0]][i[1]].cell_known_mines += 1

@@ -1,8 +1,9 @@
 from BoardSetup import board_setup, get_choice, get_tile_choice, decide_outcome
 
 # Sets up the board
-keep_going = True
 board = board_setup()
+
+keep_going = len(board.checked_tiles) != board.tiles-board.num_mines
 
 # While the game has not finished
 while keep_going and board != False:
