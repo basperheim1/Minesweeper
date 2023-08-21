@@ -1,16 +1,19 @@
-class Cell:
+class Tile:
 
+    # Initializes the tile, creates various attributes used in determining the probability of the tile being a mine
     def __init__(self, status):
         self.is_mine = status
         self.uncovered = False
-        self.mines_around = 0
         self.flagged = False
-        self.probability = 0
         self.has_some_data = False
+        self.mines_around = 0
+        self.probability = 0
+        self.tile_known_mines = 0
         self.surrounding_tiles = set()
         self.known_tiles = set()
-        self.cell_known_mines = 0
 
+    # Determines, based on the tile's state, what to return as a string 
+    # This method deals only when probabilities are requested to be on screen
     def prob_str(self):
         if not self.uncovered:
             if self.flagged:
@@ -33,7 +36,9 @@ class Cell:
                 return "[ M ]"
             else:
                 return (f'[ {self.mines_around} ]')
-
+            
+    # Determines, based on the tile's state, what to return as a string 
+    # This method deals only when probabilities are NOT requested to be on screen
     def no_prob_str(self):
         if not self.uncovered:
             if self.flagged:

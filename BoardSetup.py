@@ -56,6 +56,8 @@ def board_setup():
 
 
 def get_choice(inputted_board):
+    # Gets input for choice, ensures it's a valid input (f, g, or p) 
+    # 'm' is a backdoor command that allows you to flag on determined mines
     fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
     while fgp != 'g' and fgp != 'f':
         if fgp == 'p':
@@ -72,17 +74,17 @@ def get_choice(inputted_board):
             fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
     return fgp
 
-
+# gets the tile choice for the player 
 def get_tile_choice(inputted_board):
     correct = False
     while not correct:
         try:
             row = int(input("Which row of the board do you want to check? "))
-            if not 0 <= row < inputted_board.height:
+            if not 1 <= row < inputted_board.height+1:
                 raise InputNotInBounds
             correct = True
         except InputNotInBounds:
-            print(f"You must chose a value from 0 to {inputted_board.height - 1}")
+            print(f"You must chose a value from 1 to {inputted_board.height}")
         except ValueError:
             print("Your input must be a non-negative integer")
 
@@ -90,28 +92,30 @@ def get_tile_choice(inputted_board):
     while not correct:
         try:
             column = int(input("Which column of the board do you want to check? "))
-            if not 0 <= column < inputted_board.width:
+            if not 1 <= column < inputted_board.width+1:
                 raise InputNotInBounds
             correct = True
         except InputNotInBounds:
-            print(f"You must chose a value from 0 to {inputted_board.width - 1}")
+            print(f"You must chose a value from 1 to {inputted_board.width}")
         except ValueError:
             print("Your input must be a non-negative integer")
-    if (row, column) in inputted_board.checked_tiles:
+    # important, reason it's minus 1 is because the underlying board has indexies starting at 0, while the input has indicies starting at 1
+    if (row-1, column-1) in inputted_board.clicked_tiles:
         print("That tile has already been uncovered, try again")
         return get_tile_choice(inputted_board)
-    return (row, column)
+    return (row-1, column-1)
 
+# determines what the first spot is, ensures that that spot will not be a mine
 def get_first_spot(height, width):
     correct = False
     while not correct:
         try:
             row = int(input("Which row of the board do you want to check? "))
-            if not 0 <= row < height:
+            if not 1 <= row < height+1:
                 raise InputNotInBounds
             correct = True
         except InputNotInBounds:
-            print(f"You must chose a value from 0 to {height - 1}")
+            print(f"You must chose a value from 1 to {height}")
         except ValueError:
             print("Your input must be a non-negative integer")
 
@@ -119,14 +123,16 @@ def get_first_spot(height, width):
     while not correct:
         try:
             column = int(input("Which column of the board do you want to check? "))
-            if not 0 <= column < width:
+            if not 1 <= column < width+1:
                 raise InputNotInBounds
             correct = True
         except InputNotInBounds:
-            print(f"You must chose a value from 0 to {width - 1}")
+            print(f"You must chose a value from 1 to {width}")
         except ValueError:
             print("Your input must be a non-negative integer")
-    return (row, column)
+            
+    # important, reason it's minus 1 is because the underlying board has indexies starting at 0, while the input has indicies starting at 1            
+    return (row-1, column-1)
 
 
 def decide_outcome(finished_board):
@@ -139,7 +145,7 @@ def decide_outcome(finished_board):
     print(finished_board)
 
     # Determines whether you won or lost
-    if len(finished_board.checked_tiles) == finished_board.tiles - finished_board.num_mines:
+    if len(finished_board.clicked_tiles) == finished_board.tiles - finished_board.num_mines:
         print("CONGRATULATIONS!!! YOU WON!!")
     else:
         print("You lost")

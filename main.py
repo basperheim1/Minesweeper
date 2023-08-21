@@ -3,7 +3,8 @@ from BoardSetup import board_setup, get_choice, get_tile_choice, decide_outcome
 # Sets up the board
 board = board_setup()
 
-keep_going = len(board.checked_tiles) != board.tiles-board.num_mines
+# Checks to see if all non-mine tiles have been clicked
+keep_going = len(board.clicked_tiles) != board.tiles-board.num_mines
 
 # While the game has not finished
 while keep_going and board != False:
@@ -21,6 +22,6 @@ while keep_going and board != False:
         board.board[tile_location[0]][tile_location[1]].flagged = True
 
     # If all non-mine tiles have been uncovered, the game ends
-    if len(board.checked_tiles) == board.tiles-board.num_mines:
+    if len(board.clicked_tiles) == board.tiles-board.num_mines:
         keep_going = False
 decide_outcome(board)
