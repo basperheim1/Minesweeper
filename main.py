@@ -7,8 +7,9 @@ board = board_setup()
 keep_going = len(board.clicked_tiles) != board.tiles-board.num_mines
 
 # While the game has not finished
+
 while keep_going and board != False:
-    board.check_probabilities()
+    # board.check_probabilities()
     print(board)
 
     # Determines if it's a guess, a flag, or a probability request, then gets the tile location
@@ -24,4 +25,5 @@ while keep_going and board != False:
     # If all non-mine tiles have been uncovered, the game ends
     if len(board.clicked_tiles) == board.tiles-board.num_mines:
         keep_going = False
+
 decide_outcome(board)
