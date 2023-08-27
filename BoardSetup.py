@@ -1,4 +1,4 @@
-from Board import Board
+from Board3 import Board
 import sys
 sys.setrecursionlimit(20000)
 
@@ -65,7 +65,7 @@ def get_choice(inputted_board):
             print(inputted_board)
             fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()
         elif fgp == 'm':
-            for i in inputted_board.mines:
+            for i in inputted_board.known_mines:
                 inputted_board.board[i[0]][i[1]].flagged = True
             print(inputted_board)
             fgp = input("Do you want to flag a tile (f), guess a tile (g), or toggle between probabilities (p)? ").lower()

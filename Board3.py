@@ -55,26 +55,33 @@ class Board:
     # Additionally, for each tile adjacent to the mine, the number of known mines goes up by 1 and the original tile is added to the known_tiles set
     # Also, the tile determined to be a mine is removed from all possible mine combinations
     def mine_known(self, row, column):
+        self.board[row][column].probability = 1
+        self.known_tiles.add((row, column))
         self.known_mines.add((row, column))
         for i in self.board[row][column].surrounding_tiles:
             self.board[i[0]][i[1]].known_tiles.add((row, column))
             self.board[i[0]][i[1]].tile_known_mines += 1
         for i in self.islands:
-            i.remove((row, column))
+            if (row, column) in i[1]:
+                for j in i[2]:
+                    j.remove((row, column))
 
 
-    # Executes when a tile has been clicked. 
+    # Executes when a tile has been clicked or when a tile is known to not be a mine
     # Additionally, for each tile adjacent to the clicked tile, the clicked tile is added to the known_tiles set of the adjacent tile
     # Also, the clicked tile is removed from all possible mine combinations
     def tile_known(self, row, column):
-        for i in self.board[row][column].surrounding_tiles:
-            self.board[i[0]][i[1]].known_tiles.add((row, column))
+        if self.board[row][column].probability != 1:
+            self.board[row][column].probability = 0
+            self.known_tiles.add((row, column))
+            for i in self.board[row][column].surrounding_tiles:
+                self.board[i[0]][i[1]].known_tiles.add((row, column))
 
-        for i in self.islands:
-            if (row, column) in i[1]:
-                for j in i[2]:
-                    if (row, column) in j:
-                        i[2].remove(j)
+            for i in self.islands:
+                if (row, column) in i[1]:
+                    for j in i[2]:
+                        if (row, column) in j:
+                            i[2].remove(j)
 
     # Overrides the string method for the board
     def __str__(self):
@@ -120,7 +127,6 @@ class Board:
             self.tile_known(row, column)
             self.tiles_with_data.add((row, column))
             self.clicked_tiles.add((row, column))
-            self.known_tiles.add((row, column))
             self.tiles_with_data.update(self.board[row][column].surrounding_tiles)
 
             # If the clicked tile is a mine, then the game is over, otherwise, the possible mine combinations are updated, and the surrounding tiles are checked
@@ -206,41 +212,99 @@ class Board:
             
         return True
 
-    # This determines the probabilities, determines it based off of the overall board_mine_combos
-    def check_probabilities(self):
-        total_combinations = 0
-        possible_mines = {}
+    def get_glob_one(self, globe, island):
+        if len(self.islands) == 1:
+            return {0:1}
+        glob_one = {}
+        while globe:
+            index = min(globe.keys()) - min(island.keys())
+            ratio = int(globe[min(globe.keys())] / island[min(island.keys())])
+            glob_one[index] = ratio
+            for i in island:
+                globe[index + i] -= island[i]*ratio
+                if globe[index + i] == 0:
+                    del globe[index + i]
+        return glob_one
+
+    def determine_probabilities(self):
+        global_freq = {}
+
+        # This block determines, based on the lists in i[2] of the sublists, the frequencies of the possible global mine counts
+        for i in self.islands:
+
+            helper = {}
+            island_freq = {}
+
+            # Checks the frequencies of the legnths of lists in the possible combos for each sublist of islands
+            for j in i[2]:
+                if len(j) in island_freq:
+                    island_freq[len(j)] += 1
+                else:
+                    island_freq[len(j)] = 1
+
+            # Uses the frequencies of the lengths of lists in each sublist of islands to create a global frequency of lengths
+            for j in island_freq:
+                if not global_freq:
+                    global_freq = island_freq
+                    break
+                else:
+                    for k in global_freq:
+                        if j+k in helper:
+                            helper[j+k] += island_freq[j]*global_freq[k]
+                        else:
+                            helper[j+k] = island_freq[j]*global_freq[k]
+
+
+            if helper:
+                global_freq = helper.copy()
+
+
 
         # Determines for each sub-list in board_mine_combos, how many total board-wide possible combinations are possible given this sub-list combination is true
         # The sub-lists in board_mine_combos only refer to the tiles adjacent to clicked tiles
         # This loop determines the TOTAL number of combinations, assuming the sub-list combination is correct
         # Helpful link to the underlying calculations of it all: 
         for i in self.islands:
-            total_mines_left = self.num_mines - (len(i) + len(self.known_mines))
-            total_tiles_left = self.tiles - len(self.tiles_with_data)
-            partial_combinations = factorial(total_tiles_left)/(factorial(total_tiles_left-total_mines_left)*factorial(total_mines_left))
-            total_combinations += partial_combinations
-            for j in i:
-                if j in possible_mines:
-                    possible_mines[j] += partial_combinations
+
+            island_freq = {}
+            for j in i[2]:
+                if len(j) in island_freq:
+                    island_freq[len(j)] += 1
                 else:
-                    possible_mines[j] = partial_combinations
+                    island_freq[len(j)] = 1
 
-        # Determines the probability of there being a mine in each tile
-        # Does this by taking all the possible combos with the tile being a mine / all the possible combos
-        for k in possible_mines:
-            possible_mines[k] = possible_mines[k] / total_combinations
+            total_combinations = 0
+            possible_mines = {}
 
-        # Assigns probabilities to tile objects 
-        # Adds known tiles to the known_tiles set
-        for i in self.tiles_with_data.difference(self.known_tiles):
-            self.board[i[0]][i[1]].has_some_data = True
-            if i in possible_mines.keys():
-                self.board[i[0]][i[1]].probability = possible_mines[i]
-                if self.board[i[0]][i[1]].probability == 1:
-                    self.known_tiles.add((i[0], i[1]))
-                    self.mine_known(i[0], i[1])
-            else:
-                self.board[i[0]][i[1]].probability = 0
-                self.known_tiles.add((i[0], i[1]))
-        
+            # Myabe make coppy
+            glob_one = self.get_glob_one(global_freq.copy(), island_freq)
+
+            for j in i[2]:
+                for a in glob_one:
+                    total_mines_left = self.num_mines - (len(j) + len(self.known_mines)+a)
+                    total_tiles_left = self.tiles - len(self.tiles_with_data)   
+                    partial_combinations = 0
+                    if total_mines_left >= 0 and total_tiles_left >= 0 and total_tiles_left >= total_mines_left: 
+                        partial_combinations = glob_one[a]*factorial(total_tiles_left)/(factorial(total_tiles_left-total_mines_left)*factorial(total_mines_left))
+                        total_combinations += partial_combinations
+
+                    for k in j:
+                        if k in possible_mines and partial_combinations > 0:
+                            possible_mines[k] += partial_combinations
+                        else:
+                            possible_mines[k] = partial_combinations
+
+            if total_combinations > 0:
+                for k in possible_mines:
+                    possible_mines[k] /= total_combinations
+
+
+
+                for j in i[1]:
+                    self.board[j[0]][j[1]].has_some_data = True
+                    if j in possible_mines.keys():
+                        self.board[j[0]][j[1]].probability = possible_mines[j]
+                        if self.board[j[0]][j[1]].probability == 1:
+                            self.mine_known(j[0], j[1])
+                    else:
+                        self.tile_known(j[0], j[1])
