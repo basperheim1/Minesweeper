@@ -1,4 +1,4 @@
-from Board3 import Board
+from Board import Board
 import sys
 sys.setrecursionlimit(20000)
 
