@@ -219,8 +219,9 @@ class Board:
         
         # If, for each clicked tile in the island, the number of possible mines surrounding each clicked tile does not equal the number of mines surrounding each tile, then the combination is not valid
         for i in self.islands[idx][0]:
-            if sum([1 for j in self.board[i[0]][i[1]].surrounding_tiles.difference(self.board[i[0]][i[1]].known_tiles) if j in combo]) != self.board[i[0]][i[1]].mines_around - self.board[i[0]][i[1]].tile_known_mines:
-                return False
+            if self.board[i[0]][i[1]].mines_around - self.board[i[0]][i[1]].tile_known_mines != 0:
+                if sum([1 for j in self.board[i[0]][i[1]].surrounding_tiles.difference(self.board[i[0]][i[1]].known_tiles) if j in combo]) != self.board[i[0]][i[1]].mines_around - self.board[i[0]][i[1]].tile_known_mines:
+                    return False
             
         return True
 
