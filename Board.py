@@ -15,12 +15,13 @@ class Board:
         self.board = []
 
         # Creates various data structures to help keep track of how the game is progressing
+        self.all_tiles = set()
         self.known_mines = set()
         self.tiles_with_data = set()
         self.clicked_tiles = set()
         self.known_tiles = set()
 
-        # This is the most important part of the probability determining process, the 4 sets above are used to help configure this list
+        # This is the most important part of the probability determining process, the 5 sets above are used to help configure this list
         # This list, will become a list of lists, with each sublist having 3 elements
         # Each sublist refers to an "island," and is a section of tiles that are next to one another
         # The first element of these sublists is all the clicked tiles in a given island
@@ -35,6 +36,7 @@ class Board:
         for i in range(height):
             self.board.append([])
             for j in range(width):
+                self.all_tiles.add((i, j))
                 if i*width+j == self.mine_locations[-1]:
                     self.board[i].append(Tile(True))
                     self.mine_locations.pop()
@@ -67,7 +69,10 @@ class Board:
         for i in self.islands:
             if (row, column) in i[1]:
                 for j in i[2]:
-                    j.remove((row, column))
+                    try:
+                        j.remove((row, column))
+                    except ValueError:
+                        pass
                 break
 
 
@@ -150,7 +155,6 @@ class Board:
     # This is where the possible combinations of mines are determined.
     # This method is called each time a new tile has been clicked, as more data has been gathered
     def determine_combos(self, row, column):
-
         # Determines which, if any, of the islands the newly clicked tile would be a part of
         index = []
         for idx, i in enumerate(self.islands):
@@ -283,8 +287,7 @@ class Board:
                 global_freq = helper.copy()
 
         return global_freq
-
-
+    
     # Determines for each island, what the probability of there being a mine is, in each non-clicked tile in the island
     def determine_probabilities(self):
 
@@ -313,7 +316,7 @@ class Board:
                     total_mines_left = self.num_mines - (len(j) + len(self.known_mines)+a)
                     total_tiles_left = self.tiles - len(self.tiles_with_data) 
                     partial_combinations = 0
-                    if total_mines_left >= 0 and total_tiles_left >= 0 and total_tiles_left >= total_mines_left: 
+                    if total_mines_left >= 0 and total_tiles_left >= total_mines_left: 
                         partial_combinations = glob_one[a]*factorial(total_tiles_left)/(factorial(total_tiles_left-total_mines_left)*factorial(total_mines_left))
                         total_combinations += partial_combinations
 
@@ -339,3 +342,39 @@ class Board:
                             self.mine_known(j[0], j[1])
                     else:
                         self.tile_known(j[0], j[1])
+
+    # Determines the probability of there being a mine under any tile not next to any island. 
+    def determine_ai_choice(self):
+        global_freq = self.determine_global_freq()
+        possible_mines = 0
+        combos = 0
+        tiles_with_no_data = self.tiles - len(self.tiles_with_data)
+        for i in global_freq:
+            total_mines_left = self.num_mines - i - len(self.known_mines)
+            if total_mines_left >= 0 and total_mines_left <= tiles_with_no_data:
+                possible_mines += total_mines_left*global_freq[i]
+                combos += global_freq[i]
+
+        if combos == 0 or tiles_with_no_data == 0:
+            random_choice = None
+        else:
+            random_choice = possible_mines / combos / tiles_with_no_data
+
+        lowest_prob_guess = random.choice(tuple(self.tiles_with_data.difference(self.clicked_tiles)))
+        for i in self.tiles_with_data.difference(self.clicked_tiles):
+            if self.board[i[0]][i[1]].probability < self.board[lowest_prob_guess[0]][lowest_prob_guess[1]].probability:
+                lowest_prob_guess = i
+
+
+        if random_choice:
+            if random_choice < self.board[lowest_prob_guess[0]][lowest_prob_guess[1]].probability:
+                lowest_prob_guess = random.choice(tuple(self.all_tiles.difference(self.tiles_with_data)))
+
+
+        return lowest_prob_guess
+                
+        
+
+        
+
+        

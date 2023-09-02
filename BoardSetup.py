@@ -11,6 +11,13 @@ class InputNotInBounds(Exception):
     '''Raised when the inputted row or column is not in the bounds'''
     pass
 
+def get_game_type():
+    game_type = input("Do you want to play (p) or do you want to watch the AI (a) solve the board?: ").lower()
+    while game_type != 'p' and game_type != 'a':
+        print("That is not a valid choice, try again: ")
+        game_type = input("Do you want to play (p) or do you want to watch the AI (a) solve the board?: ").lower()
+
+    return game_type
 
 def board_setup():
 
@@ -147,5 +154,8 @@ def decide_outcome(finished_board):
     # Determines whether you won or lost
     if len(finished_board.clicked_tiles) == finished_board.tiles - finished_board.num_mines:
         print("CONGRATULATIONS!!! YOU WON!!")
+        return True
     else:
         print("You lost")
+        return False
+
